@@ -12,9 +12,8 @@ class PasteController extends Controller
      */
     public function index(Request $request)
     {
-        $perpage = $request->perpage ?? 100;
+        $perpage = $request->perpage ?? 2;
         return view('pastes', [
-            // 'pastes' => Paste::all()
             'pastes' =>Paste::paginate($perpage)->withQueryString()
         ]);
     }

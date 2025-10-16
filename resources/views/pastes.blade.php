@@ -34,5 +34,6 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $pastes->links() }}
 </body>
 </html>
