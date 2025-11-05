@@ -9,3 +9,63 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Pagination: dark compact style like on screenshot */
+.pagination {
+    display: flex;
+    gap: 0.35rem;
+    padding-left: 0;
+    margin: 0;
+    list-style: none;
+    align-items: center;
+}
+
+.pagination .page-item .page-link {
+    color: #e9ecef;
+    background-color: #0f1720; /* near page bg */
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 0.35rem 0.55rem;
+    line-height: 1;
+    border-radius: 0.35rem;
+    min-width: 2rem;
+    text-align: center;
+    box-shadow: none;
+}
+
+.pagination .page-item .page-link:hover {
+    color: #fff;
+    background-color: #0750d8;
+    border-color: #0750d8;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+    box-shadow: none;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #0f1720;
+    border-color: rgba(255,255,255,0.03);
+}
+
+/* Pagination container for smaller screens */
+.pagination-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* summary text */
+.pagination-summary {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+/* make prev/next chevrons compact */
+.page-link .bi {
+    vertical-align: -.125em;
+}

@@ -2,26 +2,31 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PasteController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\LoginController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/hello', function () {
-    return view('hello', ['title' => 'Howdy, World!']);
-});
+Route::get('/', fn () => view('welcome'))->name('home');
+Route::get('/hello', fn () => view('hello', ['title' => 'Howdy, World!']))->name('hello');
 
-route::get('/paste', [pastecontroller::class, 'index']);
-route::get('/paste/create', [pastecontroller::class, 'create']);
-route::get('/paste/{id}', [pastecontroller::class, 'show']);
-Route::post('/paste/store', [pastecontroller::class, 'store']);
-Route::get('/paste/destroy/{id}', [PasteController::class, 'destroy']);
-Route::get('/paste/edit/{id}', [PasteController::class, 'edit']);
-Route::post('/paste/update/{id}', [PasteController::class, 'update']);
+/*
+ | Paste CRUD
+*/
+Route::get('/paste', [PasteController::class, 'index'])->name('paste.index');
+Route::get('/paste/create', [PasteController::class, 'create'])->middleware('auth')->name('paste.create');
+Route::post('/paste/store', [PasteController::class, 'store'])->middleware('auth')->name('paste.store');
+Route::get('/paste/{id}', [PasteController::class, 'show'])->name('paste.show');
+Route::get('/paste/edit/{id}', [PasteController::class, 'edit'])->middleware('auth')->name('paste.edit');
+Route::post('/paste/update/{id}', [PasteController::class, 'update'])->middleware('auth')->name('paste.update');
+Route::delete('/paste/destroy/{id}', [PasteController::class, 'destroy'])->middleware('auth')->name('paste.destroy');
 
-route::get('/comment', [commentcontroller::class, 'index']);
-
-route::get('/user', [usercontroller::class, 'index']);
-route::get('/user/{id}', [usercontroller::class, 'show']);
+/*
+ | Auth
+*/
+Route::get('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/auth', [LoginController::class, 'auth'])->name('auth');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

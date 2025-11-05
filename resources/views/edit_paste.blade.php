@@ -8,42 +8,46 @@
     </style>
 </head>
 <body>
-    <h2>Edit Paste</h2>
-    <form method="POST" action="{{ url('/paste/update/'.$paste->id) }}">
-        @csrf
+    @extends('layout')
 
-        <label>Title</label>
-        <input type="text" name="title" value="{{ old('title', $paste->title) }}">
-        @error('title')
-            <div class="is-invalid">{{ $message }}</div>
-        @enderror
-        <br>
+    @section('content')
+    <div class="card">
+        <div class="card-header"><h5 class="mb-0">Редактировать запись #{{ $paste->id }}</h5></div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('paste.update', $paste->id) }}">
+                @csrf
 
-        <label>Main Text</label>
-        <textarea name="main_text" rows="10" cols="30">{{ old('main_text', $paste->main_text) }}</textarea>
-        @error('main_text')
-            <div class="is-invalid">{{ $message }}</div>
-        @enderror
-        <br>
+                <div class="mb-3">
+                    <label class="form-label">Заголовок</label>
+                    <input name="title" type="text" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $paste->title) }}" required>
+                    @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
 
-        <label>Expiration</label>
-        <input type="text" name="expiration" value="{{ old('expiration', $paste->expiration) }}">
-        @error('expiration')
-            <div class="is-invalid">{{ $message }}</div>
-        @enderror
-        <br>
+                <div class="mb-3">
+                    <label class="form-label">Текст</label>
+                    <textarea name="main_text" rows="6" class="form-control @error('main_text') is-invalid @enderror" required>{{ old('main_text', $paste->main_text) }}</textarea>
+                    @error('main_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
 
-        <label>Access</label>
-        <select name="access">
-            <option value="false" {{ old('access', $paste->access) == 'public' ? 'selected' : '' }}>Public</option>
-            <option value="true" {{ old('access', $paste->access) == 'private' ? 'selected' : '' }}>Private</option>
-        </select>
-        @error('access')
-            <div class="is-invalid">{{ $message }}</div>
-        @enderror
-        <br>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Доступ</label>
+                        <select name="access" class="form-select">
+                            <option value="public" {{ old('access', $paste->access)=='public' ? 'selected' : '' }}>Публичный</option>
+                            <option value="private" {{ old('access', $paste->access)=='private' ? 'selected' : '' }}>Приватный</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Срок (часы)</label>
+                        <input name="expiration" type="number" class="form-control" value="{{ old('expiration', $paste->expiration ?? 24) }}" min="1">
+                    </div>
+                </div>
 
-        <input type="submit" value="Update">
-    </form>
+                <button class="btn btn-primary">Сохранить</button>
+                <a href="{{ route('paste.index') }}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+    @endsection
 </body>
 </html>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Paste;
+use Illuminate\Support\Facades\Auth;
 
 class PasteController extends Controller
 {
@@ -12,10 +13,10 @@ class PasteController extends Controller
      */
     public function index(Request $request)
     {
-        $perpage = $request->perpage ?? 2;
-        return view('pastes', [
-            'pastes' =>Paste::paginate($perpage)->withQueryString()
-        ]);
+        $perpage = (int) $request->query('perpage', 5);
+        $perpage = max(1, min($perpage, 100));
+        $pastes = Paste::orderBy('id', 'desc')->paginate($perpage)->withQueryString();
+        return view('pastes', compact('pastes'));
     }
 
     /**
@@ -23,7 +24,7 @@ class PasteController extends Controller
      */
     public function create()
     {
-        return view('create_paste') ;
+        return view('create_paste');
     }
 
     /**
@@ -31,26 +32,21 @@ class PasteController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required',
-            'main_text' => '',
-            'expiration' => 'required|integer',
-            'access' => 'required'
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'main_text' => 'required|string',
+            'access' => 'required|in:public,private',
+            'expiration' => 'nullable|integer|min:1',
         ]);
 
-        // Преобразуем количество часов в временную метку
-        $expirationTimestamp = now()->addHours((int)$validated['expiration']);
+        // привязываем к пользователю при наличии
+        if (Auth::check()) {
+            $data['user_id'] = Auth::id();
+        }
 
-        $paste = new Paste([
-            'title' => $validated['title'],
-            'main_text' => $validated['main_text'],
-            'expiration' => $expirationTimestamp,
-            'access' => $validated['access'],
-            'author_id' => auth()->id() ?? 3 
-        ]);
-        $paste->save();
+        $paste = Paste::create($data);
 
-        return redirect("/paste");
+        return redirect()->route('paste.index')->with('success', 'Запись создана.');
     }
 
     /**
@@ -58,9 +54,11 @@ class PasteController extends Controller
      */
     public function show(string $id)
     {
-        return view('paste', [
-            'paste' => Paste::all()->where('id', $id)->first()
-        ]);
+        $paste = Paste::find($id);
+        if (! $paste) {
+            return redirect()->route('paste.index')->with('error', 'Запись не найдена');
+        }
+        return view('paste', compact('paste'));
     }
 
     /**
@@ -68,7 +66,16 @@ class PasteController extends Controller
      */
     public function edit(string $id)
     {
-        $paste = Paste::findOrFail($id);
+        $paste = Paste::find($id);
+        if (! $paste) {
+            return redirect()->route('paste.index')->with('error', 'Запись не найдена');
+        }
+
+        // опциональная проверка владельца
+        if (Auth::check() && isset($paste->user_id) && Auth::id() !== $paste->user_id) {
+            return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+        }
+
         return view('edit_paste', compact('paste'));
     }
 
@@ -77,21 +84,21 @@ class PasteController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'main_text' => '',
-            'expiration' => 'required',
-            'access' => 'required'
+        $paste = Paste::find($id);
+        if (! $paste) {
+            return redirect()->route('paste.index')->with('error', 'Запись не найдена');
+        }
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'main_text' => 'required|string',
+            'access' => 'required|in:public,private',
+            'expiration' => 'nullable|integer|min:1',
         ]);
 
-        $paste = Paste::findOrFail($id);
-        $paste->title = $validated['title'];
-        $paste->main_text = $validated['main_text'];
-        $paste->expiration = $validated['expiration'];
-        $paste->access = $validated['access'];
-        $paste->save();
+        $paste->update($data);
 
-        return redirect('/paste');
+        return redirect()->route('paste.index')->with('success', 'Запись обновлена.');
     }
 
     /**
@@ -99,9 +106,19 @@ class PasteController extends Controller
      */
     public function destroy(string $id)
     {
-        $paste = Paste::findOrFail($id);
-        $paste->comments()->delete();
+        $paste = Paste::find($id);
+        if (! $paste) {
+            return redirect()->route('paste.index')->with('error', 'Запись не найдена.');
+        }
+
+        // удалить связанные данные, если нужно
+        if (method_exists($paste, 'comments')) {
+            $paste->comments()->delete();
+        }
+
         $paste->delete();
-        return redirect('/paste');
+
+        // важно: используем ключ 'success' (или тот, что в partial)
+        return redirect()->route('paste.index')->with('success', 'Запись успешно удалена.');
     }
 }
