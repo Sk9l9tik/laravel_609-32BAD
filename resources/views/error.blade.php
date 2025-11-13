@@ -53,7 +53,7 @@
         </div>
     @endif
 
-    <a href="{{ url('paste') }}">Back</a>
-    <a href="{{ url('login') }}">Return to Login</a>
+    {{-- <a href="{{ url('paste') }}">Back</a> --}}
+    {{-- <a href="{{ url('login') }}">Return to Login</a> --}}
 </body>
 </html>
