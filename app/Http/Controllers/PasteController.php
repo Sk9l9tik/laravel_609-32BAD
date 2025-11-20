@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Paste;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon; // добавлено
+use Carbon\Carbon; 
 
 class PasteController extends Controller
 {
@@ -18,7 +18,6 @@ class PasteController extends Controller
         $perpage = (int) $request->query('perpage', 5);
         $perpage = max(1, min($perpage, 100));
 
-        // сформируем запрос и при авторизации отфильтруем по владельцу
         $query = Paste::orderBy('id', 'desc');
 
         if (Auth::check()) {
@@ -86,7 +85,6 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
 
-        // если запись приватная, разрешаем просмотр только владельцу
         if (! $paste->access) {
             if (! Auth::check()) {
                 return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
@@ -117,7 +115,6 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
 
-        // проверка владельца — учитываем author_id или user_id
         if (Auth::check()) {
             $ownerId = null;
             if (Schema::hasColumn('pastes', 'author_id') && isset($paste->author_id)) {
@@ -146,7 +143,6 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
 
-        // проверка владельца перед обновлением
         if (! Auth::check()) {
             return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
         }
@@ -194,7 +190,6 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена.');
         }
 
-        // проверка владельца перед удалением
         if (! Auth::check()) {
             return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
         }
@@ -210,7 +205,6 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
         }
 
-        // удалить связанные данные, если нужно
         if (method_exists($paste, 'comments')) {
             $paste->comments()->delete();
         }
