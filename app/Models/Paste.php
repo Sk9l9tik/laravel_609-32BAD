@@ -22,8 +22,16 @@ class Paste extends Model
     protected $fillable = [
         'title',
         'main_text',
-        'expiration',
         'access',
-        'author_id'
+        'expiration',
+        'user_id',
+        'author_id',
+    ];
+
+    protected $casts = [
+        'access' => 'boolean',
+        'expiration' => 'datetime',
+        'user_id' => 'integer',
+        'author_id' => 'integer',
     ];
 }

@@ -22,7 +22,6 @@
             @endif
         </div>
     @endif
-
     @if(session('success'))
         <div class="container mt-3">
             <div class="alert alert-success alert-dismissible fade show" role="alert">

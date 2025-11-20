@@ -45,7 +45,7 @@
                         <tr>
                             <td>{{ $paste->id }}</td>
                             <td><a href="{{ route('paste.show', $paste->id) }}">{{ $paste->title }}</a></td>
-                            <td>{{ $paste->access }}</td>
+                            <td>{{ $paste->access == 1 ? 'Публичная' : 'Приватная' }}</td>
                             <td>{{ $paste->created_at->format('Y-m-d H:i') }}</td>
                             <td class="text-end">
                                 <a href="{{ route('paste.show', $paste->id) }}" class="btn btn-sm btn-outline-primary">Просмотр</a>

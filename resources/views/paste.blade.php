@@ -2,28 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comments</title>
+    <title>{{ $paste->title ?? 'Paste' }}</title>
 </head>
 <body>
-    <h2>{{ $paste ? "Comment list in".$paste->title : "Wrong title id!" }}</h2>
-       @if($paste)
-       <table border="1"> 
-            <thead>
-                <td>Id</th>
-                <td>Text</td>
-                <td>Author id</td>
-                <td>Paste id</td>
-            </thead>
-            @foreach ($paste->comments as $comment)
-                <tr>
-                    <td>{{ $comment->id }}</td>
-                    <td>{{ $comment->text }}</td>
-                    <td>{{ $comment->author_id }}</td>
-                    <td>{{ $comment->paste_id }}</td>
-                </tr>
-            @endforeach
-        </table>
-   @endif
+    @extends('layout')
+
+    @section('content')
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ $paste->title }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <strong>Доступ:</strong>
+                {{ $paste->access ? 'Публичная' : 'Приватная' }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Создано:</strong> {{ $paste->created_at->format('Y-m-d H:i') }}
+            </div>
+
+            <hr>
+
+            <div class="paste-text" style="white-space: pre-wrap;">
+                {!! nl2br(e($paste->main_text)) !!}
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ route('paste.index') }}" class="btn btn-secondary btn-sm">Назад</a>
+        </div>
+    </div>
+    @endsection
 </body>
 </html>

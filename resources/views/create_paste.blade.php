@@ -36,10 +36,10 @@
                 <select class="form-select @error('expiration') is-invalid @enderror" 
                         id="expiration" name="expiration" aria-describedby="expirationHelp">
                     <option value="">-- выберите --</option>
-                    <option value="24" {{ old('expiration') == '1 day' ? 'selected' : '' }}>1 день</option>
-                    <option value="72" {{ old('expiration') == '3 days' ? 'selected' : '' }}>3 дня</option>
-                    <option value="168" {{ old('expiration') == '7 days' ? 'selected' : '' }}>7 дней</option>
-                    <option value="720" {{ old('expiration') == '30 days' ? 'selected' : '' }}>30 дней</option>
+                    <option value="24"  {{ old('expiration') == '24'  ? 'selected' : '' }}>1 день</option>
+                    <option value="72"  {{ old('expiration') == '72'  ? 'selected' : '' }}>3 дня</option>
+                    <option value="168" {{ old('expiration') == '168' ? 'selected' : '' }}>7 дней</option>
+                    <option value="720" {{ old('expiration') == '720' ? 'selected' : '' }}>30 дней</option>
                 </select>
                 <div id="expirationHelp" class="form-text">Выберите срок действия пасты</div>
                 @error('expiration')
@@ -52,10 +52,10 @@
             <div class="mb-3">
                 <label for="access" class="form-label">Доступ</label>
                 <select class="form-select @error('access') is-invalid @enderror" 
-                        id="access" name="access" aria-describedby="accessHelp">
+                        id="access" name="access" aria-describedby="accessHelp" required>
                     <option value="">-- выберите --</option>
-                    <option value="false" {{ old('access') == 'public' ? 'selected' : '' }}>Публичная</option>
-                    <option value="true" {{ old('access') == 'private' ? 'selected' : '' }}>Приватная</option>
+                    <option value="1"  {{ old('access') == '1'  ? 'selected' : '' }}>Публичная</option>
+                    <option value="0" {{ old('access') == '0' ? 'selected' : '' }}>Приватная</option>
                 </select>
                 <div id="accessHelp" class="form-text">Выберите уровень доступа</div>
                 @error('access')

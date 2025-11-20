@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Paste;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon; // добавлено
 
 class PasteController extends Controller
 {
@@ -15,7 +17,19 @@ class PasteController extends Controller
     {
         $perpage = (int) $request->query('perpage', 5);
         $perpage = max(1, min($perpage, 100));
-        $pastes = Paste::orderBy('id', 'desc')->paginate($perpage)->withQueryString();
+
+        // сформируем запрос и при авторизации отфильтруем по владельцу
+        $query = Paste::orderBy('id', 'desc');
+
+        if (Auth::check()) {
+            if (Schema::hasColumn('pastes', 'author_id')) {
+                $query->where('author_id', Auth::id());
+            } elseif (Schema::hasColumn('pastes', 'user_id')) {
+                $query->where('user_id', Auth::id());
+            }
+        }
+
+        $pastes = $query->paginate($perpage)->withQueryString();
         return view('pastes', compact('pastes'));
     }
 
@@ -35,13 +49,26 @@ class PasteController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'main_text' => 'required|string',
-            'access' => 'required|in:public,private',
-            'expiration' => 'nullable|integer|min:1',
+            'access' => 'required|in:0,1,public,private',
+            'expiration' => 'nullable',
         ]);
 
-        // привязываем к пользователю при наличии
+        $data['access'] = in_array($data['access'], ['1', 1, 'public', 'true', true], true) ? true : false;
+
+        if (! empty($data['expiration']) && is_numeric($data['expiration'])) {
+            $data['expiration'] = Carbon::now()->addHours((int) $data['expiration']);
+        } elseif (! empty($data['expiration'])) {
+            $data['expiration'] = Carbon::parse($data['expiration']);
+        } else {
+            $data['expiration'] = null;
+        }
+
         if (Auth::check()) {
-            $data['user_id'] = Auth::id();
+            if (Schema::hasColumn('pastes', 'author_id')) {
+                $data['author_id'] = Auth::id();
+            } elseif (Schema::hasColumn('pastes', 'user_id')) {
+                $data['user_id'] = Auth::id();
+            }
         }
 
         $paste = Paste::create($data);
@@ -58,6 +85,25 @@ class PasteController extends Controller
         if (! $paste) {
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
+
+        // если запись приватная, разрешаем просмотр только владельцу
+        if (! $paste->access) {
+            if (! Auth::check()) {
+                return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+            }
+
+            $ownerId = null;
+            if (Schema::hasColumn('pastes', 'author_id') && isset($paste->author_id)) {
+                $ownerId = $paste->author_id;
+            } elseif (Schema::hasColumn('pastes', 'user_id') && isset($paste->user_id)) {
+                $ownerId = $paste->user_id;
+            }
+
+            if ($ownerId === null || Auth::id() !== (int) $ownerId) {
+                return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+            }
+        }
+
         return view('paste', compact('paste'));
     }
 
@@ -71,8 +117,19 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
 
-        // опциональная проверка владельца
-        if (Auth::check() && isset($paste->user_id) && Auth::id() !== $paste->user_id) {
+        // проверка владельца — учитываем author_id или user_id
+        if (Auth::check()) {
+            $ownerId = null;
+            if (Schema::hasColumn('pastes', 'author_id') && isset($paste->author_id)) {
+                $ownerId = $paste->author_id;
+            } elseif (Schema::hasColumn('pastes', 'user_id') && isset($paste->user_id)) {
+                $ownerId = $paste->user_id;
+            }
+
+            if ($ownerId !== null && Auth::id() !== (int) $ownerId) {
+                return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+            }
+        } else {
             return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
         }
 
@@ -89,12 +146,38 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена');
         }
 
+        // проверка владельца перед обновлением
+        if (! Auth::check()) {
+            return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+        }
+
+        $ownerId = null;
+        if (Schema::hasColumn('pastes', 'author_id') && isset($paste->author_id)) {
+            $ownerId = $paste->author_id;
+        } elseif (Schema::hasColumn('pastes', 'user_id') && isset($paste->user_id)) {
+            $ownerId = $paste->user_id;
+        }
+
+        if ($ownerId === null || Auth::id() !== (int) $ownerId) {
+            return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+        }
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'main_text' => 'required|string',
-            'access' => 'required|in:public,private',
-            'expiration' => 'nullable|integer|min:1',
+            'access' => 'required|in:0,1,public,private',
+            'expiration' => 'nullable',
         ]);
+
+        $data['access'] = in_array($data['access'], ['1', 1, 'public', 'true', true], true) ? true : false;
+
+        if (! empty($data['expiration']) && is_numeric($data['expiration'])) {
+            $data['expiration'] = Carbon::now()->addHours((int) $data['expiration']);
+        } elseif (! empty($data['expiration'])) {
+            $data['expiration'] = Carbon::parse($data['expiration']);
+        } else {
+            $data['expiration'] = null;
+        }
 
         $paste->update($data);
 
@@ -111,6 +194,22 @@ class PasteController extends Controller
             return redirect()->route('paste.index')->with('error', 'Запись не найдена.');
         }
 
+        // проверка владельца перед удалением
+        if (! Auth::check()) {
+            return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+        }
+
+        $ownerId = null;
+        if (Schema::hasColumn('pastes', 'author_id') && isset($paste->author_id)) {
+            $ownerId = $paste->author_id;
+        } elseif (Schema::hasColumn('pastes', 'user_id') && isset($paste->user_id)) {
+            $ownerId = $paste->user_id;
+        }
+
+        if ($ownerId === null || Auth::id() !== (int) $ownerId) {
+            return redirect()->route('paste.index')->with('error', 'Доступ запрещён');
+        }
+
         // удалить связанные данные, если нужно
         if (method_exists($paste, 'comments')) {
             $paste->comments()->delete();
@@ -118,7 +217,6 @@ class PasteController extends Controller
 
         $paste->delete();
 
-        // важно: используем ключ 'success' (или тот, что в partial)
         return redirect()->route('paste.index')->with('success', 'Запись успешно удалена.');
     }
 }
