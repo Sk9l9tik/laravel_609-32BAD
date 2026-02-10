@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Paste;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Carbon\Carbon; 
+use Carbon\Carbon;
 
 class PasteController extends Controller
 {
@@ -51,6 +51,10 @@ class PasteController extends Controller
             'access' => 'required|in:0,1,public,private',
             'expiration' => 'nullable',
         ]);
+
+        do {
+            $data['id'] = random_int(1, 10000001);  // e.g., "A1B2C3D4"
+        } while (Paste::where('id', $data['id'])->exists());
 
         $data['access'] = in_array($data['access'], ['1', 1, 'public', 'true', true], true) ? true : false;
 

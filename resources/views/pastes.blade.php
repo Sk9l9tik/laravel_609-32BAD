@@ -24,7 +24,7 @@
                 </form>
 
                 @auth
-                    <a href="{{ route('paste.create') }}" class="btn btn-success btn-sm">Добавить запись</a>
+                <a href="{{ route('paste.create') }}" class="btn btn-success btn-sm">Добавить запись</a>
                 @endauth
             </div>
         </div>

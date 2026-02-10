@@ -1,0 +1,72 @@
+services:
+  pastebin:
+    build: "."
+    container_name: pastebin
+    # command: sh -c "composer install && cron && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    # command: sh -c "composer install && php artisan cache:clear && php artisan migrate --force && php -S 0.0.0.0:6001 -t public"
+    # command: sh -c "composer install --no-dev --no-scripts && php artisan key:generate migrate --force && php artisan package:discover --ansi && php -S 0.0.0.0:6001 -t public"
+    # command: sh -c "composer install --no-dev && php artisan key:generate && sleep 5 && php artisan migrate --force && php -S 0.0.0.0:6001 -t public"
+
+    ports:
+      - "6001:6001"
+    volumes:
+      - .:/var/www
+
+    environment:
+      APP_URL: "http://localhost"
+      DB_CONNECTION: mysql
+      DB_HOST: pastebin_mysql
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel_user
+      DB_PASSWORD: laravel_password
+
+      APP_ENV: local
+      APP_DEBUG: true
+    depends_on:
+      - pastebin_mysql
+    networks:
+      - pastebin_network
+    expose:
+      - "6001"
+
+  # frontend:
+  #   build:
+  #     context: ../ais-student-frontend/
+  #     dockerfile: Dockerfile
+  #   container_name: ais_frontend
+  #   ports:
+  #     - "8800:8800"
+  #   depends_on:
+  #     - web
+  #   networks:
+  #     - ais_network
+
+  pastebin_mysql:
+    image: mysql:8.0
+    container_name: pastebin_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --bind-address=0.0.0.0
+      - --skip-name-resolve
+      - --max_allowed_packet=64M
+    networks:
+      - pastebin_network
+
+volumes:
+  mysql_data:
+
+networks:
+  pastebin_network:
+    driver: bridge
+

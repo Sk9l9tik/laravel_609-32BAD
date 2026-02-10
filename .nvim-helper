@@ -1,0 +1,12 @@
+# Neovim Helper Configuration for Laravel Projects
+# This file stores your preferences for Neovim's Laravel integration.
+# 
+# Available settings:
+# - ide_helper_install=declined   (Skip prompts to install Laravel IDE Helper)
+# - ide_helper_generate=declined  (Skip prompts to generate helper files)
+# - use_standard_php=always       (Always use standard PHP instead of Sail)
+# 
+# To change a setting, edit the value or remove the line to reset to default behavior.
+# Example: Change 'declined' to 'prompt' to start getting prompts again.
+# 
+ide_helper_generate=declined
