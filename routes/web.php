@@ -31,7 +31,7 @@ Route::delete('/paste/destroy/{id}', [PasteController::class, 'destroy'])->middl
 /*
  | Auth
 */
-Route::get('/log', [LoginController::class, 'login'])->name('login');
+Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/auth', [LoginController::class, 'auth'])->name('auth');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 

@@ -17,7 +17,17 @@ Route::get("/pastes/{id}", [PasteControllerApi::class, "show"]);
 Route::get("/comments", [CommentControllerApi::class, "index"]);
 Route::get("/comments/{id}", [CommentControllerApi::class, "show"]);
 
-Route::get("/users", [UserControllerApi::class, "index"]);
 Route::get("/users/{id}", [UserControllerApi::class, "show"]);
 
 Route::post("/login", [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->get('/users',[UserControllerApi::class, 'index']);
+
+Route::group(['middleware'=>['auth:sanctum']], function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get("/pastes", [PasteControllerApi::class, "index"]);
+
+    Route::get('/logout', [AuthController::class, 'logout']);
+});

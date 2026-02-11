@@ -43,7 +43,8 @@ RUN docker-php-ext-install opcache
 # RUN crontab /etc/cron.d/worker-cron
 # RUN touch /var/log/cron.log
 
-
+RUN composer require laravel/sanctum
+RUN php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
 
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
