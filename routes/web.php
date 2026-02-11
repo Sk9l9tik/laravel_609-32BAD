@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PasteController;
 use App\Http\Controllers\PasteControllerApi;
@@ -30,18 +31,7 @@ Route::delete('/paste/destroy/{id}', [PasteController::class, 'destroy'])->middl
 /*
  | Auth
 */
-Route::get('/login', [LoginController::class, 'login'])->name('login');
+Route::get('/log', [LoginController::class, 'login'])->name('login');
 Route::post('/auth', [LoginController::class, 'auth'])->name('auth');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-/*
- | Api Controllers
- */
-Route::get("/pastes", [PasteControllerApi::class, "index"]);
-Route::get("/pastes/{id}", [PasteControllerApi::class, "show"]);
-
-Route::get("/comments", [CommentControllerApi::class, "index"]);
-Route::get("/comments/{id}", [CommentControllerApi::class, "show"]);
-
-Route::get("/users", [UserControllerApi::class, "index"]);
-Route::get("/users/{id}", [UserControllerApi::class, "show"]);

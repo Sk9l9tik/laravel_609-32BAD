@@ -2,10 +2,10 @@ services:
   pastebin:
     build: "."
     container_name: pastebin
-    # command: sh -c "composer install && cron && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    # command: sh -c "sleep 5 && php artisan serve --host=0.0.0.0 --port=6001"
     # command: sh -c "composer install && php artisan cache:clear && php artisan migrate --force && php -S 0.0.0.0:6001 -t public"
     # command: sh -c "composer install --no-dev --no-scripts && php artisan key:generate migrate --force && php artisan package:discover --ansi && php -S 0.0.0.0:6001 -t public"
-    # command: sh -c "composer install --no-dev && php artisan key:generate && sleep 5 && php artisan migrate --force && php -S 0.0.0.0:6001 -t public"
+    command: sh -c "composer install --no-dev && php artisan key:generate && sleep 5 && php artisan migrate --force && php -S 0.0.0.0:6001 -t public"
 
     ports:
       - "6001:6001"
