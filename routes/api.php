@@ -13,6 +13,7 @@ use App\Http\Controllers\UserControllerApi;
  */
 Route::get("/pastes", [PasteControllerApi::class, "index"]);
 Route::get("/pastes/{id}", [PasteControllerApi::class, "show"]);
+Route::post('/pastes/create', [PasteControllerApi::class, 'store']); //->middleware('auth')->name('paste.create');
 
 Route::get("/comments", [CommentControllerApi::class, "index"]);
 Route::get("/comments/{id}", [CommentControllerApi::class, "show"]);
@@ -27,7 +28,7 @@ Route::group(['middleware'=>['auth:sanctum']], function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::get("/pastes", [PasteControllerApi::class, "index"]);
+    // Route::get("/pastes", [PasteControllerApi::class, "index"]);
 
     Route::get('/logout', [AuthController::class, 'logout']);
 });
