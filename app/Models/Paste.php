@@ -17,7 +17,7 @@ class Paste extends Model
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     protected $keyType = 'int';
@@ -30,6 +30,7 @@ class Paste extends Model
         'expiration',
         'user_id',
         'author_id',
+        'image_url',
     ];
 
     protected $casts = [

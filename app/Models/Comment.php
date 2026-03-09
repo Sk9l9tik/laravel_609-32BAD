@@ -15,10 +15,16 @@ class Comment extends Model
     {
         return $this->belongsTo(Paste::class);
     }
-    
+
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'author_id');
     }
+
+    protected $fillable = [
+        'paste_id',
+        'author_id',
+        'text',
+    ];
 }

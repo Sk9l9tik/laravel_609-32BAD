@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamp('expiration');
             $table->boolean('access');
             $table->unsignedBigInteger('author_id');
+            $table->string('image_url', 150)->nullable();
             $table->foreign('author_id')->references('id')->on('users');
             $table->timestamps();
         });
