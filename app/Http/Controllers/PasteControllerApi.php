@@ -65,7 +65,16 @@ class PasteControllerApi extends Controller
             $data['expiration'] = null;
         }
 
-        $data['author_id'] = $request->user() ? $request->user()->id : 2;
+        $user = null;
+        $token = $request->bearerToken();
+        if ($token) {
+            $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if ($accessToken) {
+                $user = $accessToken->tokenable;
+            }
+        }
+
+        $data['author_id'] = $user ? $user->id : 2;
         $data['image_url'] = $fileUrl;
 
         $paste = Paste::create($data);

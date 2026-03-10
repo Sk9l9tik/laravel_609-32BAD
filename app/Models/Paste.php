@@ -17,7 +17,7 @@ class Paste extends Model
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class, 'author_id');
+        return $this->belongsTo(User::class, 'author_id')->withDefault(['name' => 'Guest', ]);
     }
 
     protected $keyType = 'int';
