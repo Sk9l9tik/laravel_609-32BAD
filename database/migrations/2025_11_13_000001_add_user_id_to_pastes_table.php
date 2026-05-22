@@ -10,6 +10,7 @@ class AddUserIdToPastesTable extends Migration
     {
         Schema::table('pastes', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('expiration')->nullable()->change();
         });
     }
 
@@ -17,6 +18,7 @@ class AddUserIdToPastesTable extends Migration
     {
         Schema::table('pastes', function (Blueprint $table) {
             $table->dropConstrainedForeignId('user_id');
+            $table->timestamp('expiration')->nullable(false)->change();
         });
     }
 }

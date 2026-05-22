@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Support\Facades\Log;
 
 class PasteControllerApi extends Controller
 {
@@ -42,6 +43,12 @@ class PasteControllerApi extends Controller
             try {
                 $path    = Storage::disk('s3')->putFileAs('paste_pictures', $file, $fileName);
                 $fileUrl = env('AWS_URL') . '/' . $path;
+
+                Log::info('Image uploaded successfully to S3', [
+                    'path' => $path,
+                    'url' => $fileUrl,
+                    'file_name' => $fileName,
+                ]);
 
             } catch (\Exception $e) {
                 return response()->json([
@@ -121,15 +128,85 @@ class PasteControllerApi extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+
+        $paste = Paste::find($id);
+        if (!$paste) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        if ($paste->author_id !== $user->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $data = $request->validate([
+            'title'        => 'required|string|max:255',
+            'main_text'    => 'required|string',
+            'access'       => 'required',
+            'expiration'   => 'nullable',
+            'image'        => 'nullable|file|image|max:5120',
+            'remove_image' => 'nullable',
+        ]);
+
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $file     = $request->file('image');
+            $fileName = rand(1, 100000) . '_' . $file->getClientOriginalName();
+            try {
+                $path             = Storage::disk('s3')->putFileAs('paste_pictures', $file, $fileName);
+                $paste->image_url = env('AWS_URL') . '/' . $path;
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'File upload failed: ' . $e->getMessage()], 500);
+            }
+        } elseif ($request->input('remove_image') === '1') {
+            $paste->image_url = null;
+        }
+
+        $paste->title     = $data['title'];
+        $paste->main_text = $data['main_text'];
+        $paste->access    = in_array($data['access'], ['1', 1, 'public', 'true', true], true);
+
+        if ($request->has('expiration')) {
+            $exp = $request->input('expiration');
+            if (empty($exp)) {
+                $paste->expiration = null;
+            } elseif (is_numeric($exp)) {
+                $paste->expiration = Carbon::now()->addHours((int) $exp);
+            } else {
+                $paste->expiration = Carbon::parse($exp);
+            }
+        }
+
+        $paste->save();
+
+        return response()->json(['success' => true]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+
+        $paste = Paste::find($id);
+        if (!$paste) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        if ($paste->author_id !== $user->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $paste->comments()->delete();
+        $paste->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function user_pastes(Request $request)
@@ -139,11 +216,18 @@ class PasteControllerApi extends Controller
             return response()->json(['error' => 'Authentication required'], 401);
         }
 
-        $pastes = Paste::where('author_id', $user->id)
-            ->where(function ($query) {
-                $query->whereNull('expiration')
-                      ->orWhere('expiration', '>', \Carbon\Carbon::now());
-            })
+        $query = Paste::where('author_id', $user->id)
+            ->where(function ($q) {
+                $q->whereNull('expiration')
+                  ->orWhere('expiration', '>', \Carbon\Carbon::now());
+            });
+
+        if ($request->has('search') && !empty($request->search)) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        $pastes = $query
+            ->orderBy('created_at', 'desc')
             ->limit($request->perpage ?? 6)
             ->offset(($request->perpage ?? 6) * ($request->page ?? 0))
             ->get();
@@ -158,11 +242,16 @@ class PasteControllerApi extends Controller
             return response()->json(['error' => 'Authentication required'], 401);
         }
 
-        return Paste::where('author_id', $user->id)
-            ->where(function ($query) {
-                $query->whereNull('expiration')
-                      ->orWhere('expiration', '>', \Carbon\Carbon::now());
-            })
-            ->count();
+        $query = Paste::where('author_id', $user->id)
+            ->where(function ($q) {
+                $q->whereNull('expiration')
+                  ->orWhere('expiration', '>', \Carbon\Carbon::now());
+            });
+
+        if ($request->has('search') && !empty($request->search)) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        return $query->count();
     }
 }

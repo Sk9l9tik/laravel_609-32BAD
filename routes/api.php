@@ -41,6 +41,9 @@ Route::group(['middleware'=>['auth:sanctum']], function () {
 
     Route::get("/pastes", [PasteControllerApi::class, "index"]);
 
+    Route::post('/pastes/{id}/update', [PasteControllerApi::class, 'update']);
+    Route::delete('/pastes/{id}', [PasteControllerApi::class, 'destroy']);
+
     Route::get('/logout', [AuthController::class, 'logout']);
 });
 
